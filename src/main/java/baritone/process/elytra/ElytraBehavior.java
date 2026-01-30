@@ -45,15 +45,18 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.Fireworks;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkSource;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -875,7 +878,6 @@ public final class ElytraBehavior implements Helper {
         if (!ignoreLava) {
             clear = start.equals(dest) || this.context.raytrace(start, dest);
         } else {
-            // 1.21.4: ClipContext uses different params (Block.COLLIDER is correct)
             clear = ctx.world().clip(new ClipContext(start, dest, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, ctx.player())).getType() == HitResult.Type.MISS;
         }
 
@@ -1089,7 +1091,7 @@ public final class ElytraBehavior implements Helper {
     private boolean passable(int x, int y, int z, boolean ignoreLava) {
         if (ignoreLava) {
             final FluidState fluid = this.bsi.get0(x, y, z).getFluidState();
-            return this.bsi.get0(x, y, z).getBlock() instanceof AirBlock || (fluid.getType() == FlowingFluid.FLOWING_LAVA || fluid.getType() == FlowingFluid.SOURCE_LAVA);
+            return this.bsi.get0(x, y, z).getBlock() instanceof AirBlock || (fluid.getType() == Fluids.FLOWING_LAVA || fluid.getType() == Fluids.LAVA);
         } else {
             return !this.boi.get0(x, y, z);
         }
@@ -1114,7 +1116,7 @@ public final class ElytraBehavior implements Helper {
         NonNullList<ItemStack> invy = ctx.player().getInventory().items;
         for (int i = 0; i < invy.size(); i++) {
             ItemStack slot = invy.get(i);
-            if (slot.getItem() == Items.ELYTRA && (slot.getMaxDamage() - slot.getDamageValue()) > Baritone.settings().elytraMinimumDurability.value) {
+            if (slot.getItem() == Items.ELYTRA && (slot.getItem().getMaxDamage() - slot.getDamageValue()) > Baritone.settings().elytraMinimumDurability.value) {
                 return i;
             }
         }
@@ -1126,7 +1128,7 @@ public final class ElytraBehavior implements Helper {
 
         ItemStack chest = ctx.player().getItemBySlot(EquipmentSlot.CHEST);
         if (chest.getItem() != Items.ELYTRA
-                || chest.getMaxDamage() - chest.getDamageValue() > Baritone.settings().elytraMinimumDurability.value) {
+                || chest.getItem().getMaxDamage() - chest.getDamageValue() > Baritone.settings().elytraMinimumDurability.value) {
             return;
         }
 
