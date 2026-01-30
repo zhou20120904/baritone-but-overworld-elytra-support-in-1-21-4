@@ -86,7 +86,7 @@ public abstract class MixinLivingEntity extends Entity {
             method = "travel",
             at = @At(
                     value = "INVOKE",
-                    target = "net/minecraft/world/entity/LivingEntity.getLookAngle()Lnet/minecraft/world/phys/Vec3;"
+                    target = "net/minecraft/world/entity/Entity.getLookAngle()Lnet/minecraft/world/phys/Vec3;"
             )
     )
     private void onPreElytraMove(Vec3 direction, CallbackInfo ci) {
@@ -103,7 +103,7 @@ public abstract class MixinLivingEntity extends Entity {
             method = "travel",
             at = @At(
                     value = "INVOKE",
-                    target = "net/minecraft/world/entity/LivingEntity.move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V",
+                    target = "net/minecraft/world/entity/Entity.move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V",
                     shift = At.Shift.AFTER
             )
     )
