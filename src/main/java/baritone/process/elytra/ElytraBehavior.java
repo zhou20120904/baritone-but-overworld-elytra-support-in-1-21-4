@@ -878,6 +878,7 @@ public final class ElytraBehavior implements Helper {
         if (!ignoreLava) {
             clear = start.equals(dest) || this.context.raytrace(start, dest);
         } else {
+            // 1.21.4: ClipContext uses different params (Block.COLLIDER is correct)
             clear = ctx.world().clip(new ClipContext(start, dest, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, ctx.player())).getType() == HitResult.Type.MISS;
         }
 
@@ -1116,7 +1117,7 @@ public final class ElytraBehavior implements Helper {
         NonNullList<ItemStack> invy = ctx.player().getInventory().items;
         for (int i = 0; i < invy.size(); i++) {
             ItemStack slot = invy.get(i);
-            if (slot.getItem() == Items.ELYTRA && (slot.getItem().getMaxDamage() - slot.getDamageValue()) > Baritone.settings().elytraMinimumDurability.value) {
+            if (slot.getItem() == Items.ELYTRA && (slot.getMaxDamage() - slot.getDamageValue()) > Baritone.settings().elytraMinimumDurability.value) {
                 return i;
             }
         }
@@ -1128,7 +1129,7 @@ public final class ElytraBehavior implements Helper {
 
         ItemStack chest = ctx.player().getItemBySlot(EquipmentSlot.CHEST);
         if (chest.getItem() != Items.ELYTRA
-                || chest.getItem().getMaxDamage() - chest.getDamageValue() > Baritone.settings().elytraMinimumDurability.value) {
+                || chest.getMaxDamage() - chest.getDamageValue() > Baritone.settings().elytraMinimumDurability.value) {
             return;
         }
 
