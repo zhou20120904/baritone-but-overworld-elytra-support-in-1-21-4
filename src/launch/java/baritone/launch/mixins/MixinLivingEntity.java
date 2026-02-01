@@ -80,36 +80,34 @@ public abstract class MixinLivingEntity extends Entity {
         return self.getYRot();
     }
 
-    // 修复重点：在 1.21.4 中，鞘翅飞行逻辑依然主要在 travel 中处理
-    // 之前你的代码尝试注入不存在的 updateFallFlyingMovement
+    // 修复：改回 LivingEntity 以匹配字节码中的调用所有者
     @Inject(
             method = "travel",
             at = @At(
                     value = "INVOKE",
-                    target = "net/minecraft/world/entity/Entity.getLookAngle()Lnet/minecraft/world/phys/Vec3;"
+                    target = "net/minecraft/world/entity/LivingEntity.getLookAngle()Lnet/minecraft/world/phys/Vec3;"
             )
     )
     private void onPreElytraMove(Vec3 direction, CallbackInfo ci) {
         this.getBaritone().ifPresent(baritone -> {
             this.elytraRotationEvent = new RotationMoveEvent(RotationMoveEvent.Type.MOTION_UPDATE, this.getYRot(), this.getXRot());
             baritone.getGameEventHandler().onPlayerRotationMove(this.elytraRotationEvent);
-            // 强制应用 Baritone 计算出的旋转角度
             this.setYRot(this.elytraRotationEvent.getYaw());
             this.setXRot(this.elytraRotationEvent.getPitch());
         });
     }
 
+    // 修复：改回 LivingEntity 以匹配字节码中的调用所有者
     @Inject(
             method = "travel",
             at = @At(
                     value = "INVOKE",
-                    target = "net/minecraft/world/entity/Entity.move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V",
+                    target = "net/minecraft/world/entity/LivingEntity.move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V",
                     shift = At.Shift.AFTER
             )
     )
     private void onPostElytraMove(Vec3 direction, CallbackInfo ci) {
         if (this.elytraRotationEvent != null) {
-            // 恢复玩家原本的旋转角度，避免画面鬼畜
             this.setYRot(this.elytraRotationEvent.getOriginal().getYaw());
             this.setXRot(this.elytraRotationEvent.getOriginal().getPitch());
             this.elytraRotationEvent = null;
