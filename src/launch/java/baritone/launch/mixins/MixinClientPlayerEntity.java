@@ -50,7 +50,9 @@ public class MixinClientPlayerEntity {
         }
     }
 
-    // 修复：针对 1.21.4，直接拦截对 Abilities.mayfly 字段的访问
+    // 暂时注释掉此 Mixin，因为字段映射在当前构建环境中不稳定
+    // 这只会影响：Baritone 寻路时无法强制禁止创造模式飞行。对于生存模式鞘翅飞行没有影响。
+    /*
     @Redirect(
             method = "aiStep",
             at = @At(
@@ -63,9 +65,9 @@ public class MixinClientPlayerEntity {
         if (baritone == null) {
             return capabilities.mayfly;
         }
-        // 如果 Baritone 正在自动寻路，强制认为玩家不允许飞行（防止意外起飞干扰路径）
         return !baritone.getPathingBehavior().isPathing() && capabilities.mayfly;
     }
+    */
 
     @Redirect(
             method = "aiStep",
@@ -103,7 +105,6 @@ public class MixinClientPlayerEntity {
         }
     }
 
-    // 这个方法在 1.21.4 依然存在，保持不变
     @Redirect(
             method = "aiStep",
             at = @At(
