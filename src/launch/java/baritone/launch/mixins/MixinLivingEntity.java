@@ -31,6 +31,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Optional;
@@ -42,9 +43,6 @@ import java.util.Optional;
 @Mixin(LivingEntity.class)
 public abstract class MixinLivingEntity extends Entity {
 
-    /**
-     * Event called to override the movement direction when jumping
-     */
     @Unique
     private RotationMoveEvent jumpRotationEvent;
 
@@ -80,12 +78,21 @@ public abstract class MixinLivingEntity extends Entity {
         return self.getYRot();
     }
 
-    // 修复：改回 LivingEntity 以匹配字节码中的调用所有者
+    // --- 鞘翅修复核心部分 ---
+
+    /**
+     * 在鞘翅飞行逻辑开始前注入（修改玩家旋转角度）。
+     * 使用 Slice 限定范围：从 isFallFlying() 调用开始搜索。
+     * 目标：getLookAngle() 方法。
+     */
     @Inject(
             method = "travel",
             at = @At(
                     value = "INVOKE",
-                    target = "net/minecraft/world/entity/LivingEntity.getLookAngle()Lnet/minecraft/world/phys/Vec3;"
+                    target = "Lnet/minecraft/world/entity/LivingEntity;getLookAngle()Lnet/minecraft/world/phys/Vec3;"
+            ),
+            slice = @Slice(
+                    from = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isFallFlying()Z")
             )
     )
     private void onPreElytraMove(Vec3 direction, CallbackInfo ci) {
@@ -97,13 +104,20 @@ public abstract class MixinLivingEntity extends Entity {
         });
     }
 
-    // 修复：改回 LivingEntity 以匹配字节码中的调用所有者
+    /**
+     * 在鞘翅移动逻辑结束后注入（恢复玩家旋转角度）。
+     * 使用 Slice 限定范围：从 isFallFlying() 调用开始搜索。
+     * 目标：move() 方法。
+     */
     @Inject(
             method = "travel",
             at = @At(
                     value = "INVOKE",
-                    target = "net/minecraft/world/entity/LivingEntity.move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V",
+                    target = "Lnet/minecraft/world/entity/LivingEntity;move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V",
                     shift = At.Shift.AFTER
+            ),
+            slice = @Slice(
+                    from = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isFallFlying()Z")
             )
     )
     private void onPostElytraMove(Vec3 direction, CallbackInfo ci) {
